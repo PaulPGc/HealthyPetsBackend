@@ -10,6 +10,8 @@ public interface ServiceService {
 
     List<ServiceEntity> listAll();
 
+    public ServiceEntity update(Long id, ServiceEntity serviceDetails);
+
     void delete(Long id);
 
     ServiceEntity getById(Long id);

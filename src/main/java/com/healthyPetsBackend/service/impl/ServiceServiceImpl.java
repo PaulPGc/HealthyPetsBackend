@@ -27,6 +27,21 @@ public class ServiceServiceImpl implements ServiceService {
     }
 
     @Override
+    public ServiceEntity update(Long id, ServiceEntity serviceDetails) {
+        // 1. Buscar la entidad existente por ID
+        ServiceEntity existingService = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Servicio no encontrado con ID: " + id));
+
+        // 2. Actualizar los campos
+        existingService.setName(serviceDetails.getName());
+        existingService.setPrice(serviceDetails.getPrice());
+        existingService.setDescription(serviceDetails.getDescription());
+
+        // 3. Guardar y retornar la entidad actualizada
+        return repository.save(existingService);
+    }
+
+    @Override
     public void delete(Long id) {
         repository.deleteById(id);
     }
