@@ -7,21 +7,24 @@ import java.time.LocalTime;
 
 @Entity
 @Data
-@Table(
-    name = "citas",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"veterinario_id", "fecha", "hora"})
-)
+@Table(name = "citas", uniqueConstraints = @UniqueConstraint(columnNames = { "veterinario_id", "fecha", "hora" }))
 public class Cita {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long paciente;
-    private Long mascota_id;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "paciente_id", nullable = false)
+    private User paciente;
 
-    @Column(name = "veterinario_id")
-    private Long veterinarioId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mascota_id", nullable = false)
+    private Pet mascota;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "veterinario_id")
+    private Veterinario veterinario;
 
     private LocalDate fecha;
     private LocalTime hora;
