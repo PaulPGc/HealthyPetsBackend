@@ -5,7 +5,12 @@ import lombok.Data;
 
 @Entity
 @Data
-@Table(name = "pacientes")
+@Table(
+    name = "pacientes",
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"dueno_id", "nombre"})
+    }
+)
 public class Paciente {
 
     @Id
@@ -21,4 +26,5 @@ public class Paciente {
     private String raza;
     private Integer edad;
 }
+
 

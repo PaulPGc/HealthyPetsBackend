@@ -25,10 +25,36 @@ public class HorarioServiceImpl implements HorarioService {
     @Autowired
     private VeterinarioService veterinarioService;
 
+    private boolean hasOverlap(Long veterinarioId, String dia, LocalTime inicio, LocalTime fin, Long ignoreId) {
+        List<Horario> horarios = repo.findByVeterinarioId(veterinarioId);
+
+        return horarios.stream().anyMatch(h ->
+                h.getDia().equalsIgnoreCase(dia)
+                        && (ignoreId == null || !h.getId().equals(ignoreId))
+                        && (
+
+                                (inicio.isAfter(h.getHoraInicio()) && inicio.isBefore(h.getHoraFin())) ||
+                                (fin.isAfter(h.getHoraInicio()) && fin.isBefore(h.getHoraFin())) ||
+                                (inicio.isBefore(h.getHoraInicio()) && fin.isAfter(h.getHoraFin())) ||
+                                (inicio.equals(h.getHoraInicio()) && fin.equals(h.getHoraFin()))
+                        )
+        );
+    }
+
     @Override
     public HorarioResponseDTO create(HorarioCreateDTO dto) {
         VeterinarioResponseDTO vetDto = veterinarioService.getById(dto.getVeterinarioId());
         if (vetDto == null) throw new RuntimeException("Veterinario no encontrado");
+
+        LocalTime inicio = LocalTime.parse(dto.getHoraInicio());
+        LocalTime fin = LocalTime.parse(dto.getHoraFin());
+
+        if (fin.isBefore(inicio) || fin.equals(inicio))
+            throw new RuntimeException("La hora fin debe ser mayor a la hora inicio");
+
+        if (hasOverlap(dto.getVeterinarioId(), dto.getDia(), inicio, fin, null)) {
+            throw new RuntimeException("Ya existe un horario que se solapa con este");
+        }
 
         Horario h = new Horario();
         Veterinario vet = new Veterinario();
@@ -37,8 +63,8 @@ public class HorarioServiceImpl implements HorarioService {
 
         h.setVeterinario(vet);
         h.setDia(dto.getDia());
-        h.setHoraInicio(LocalTime.parse(dto.getHoraInicio()));
-        h.setHoraFin(LocalTime.parse(dto.getHoraFin()));
+        h.setHoraInicio(inicio);
+        h.setHoraFin(fin);
 
         Horario saved = repo.save(h);
         return mapToDTO(saved);
@@ -62,14 +88,24 @@ public class HorarioServiceImpl implements HorarioService {
         VeterinarioResponseDTO vetDto = veterinarioService.getById(dto.getVeterinarioId());
         if (vetDto == null) throw new RuntimeException("Veterinario no encontrado");
 
+        LocalTime inicio = LocalTime.parse(dto.getHoraInicio());
+        LocalTime fin = LocalTime.parse(dto.getHoraFin());
+
+        if (fin.isBefore(inicio) || fin.equals(inicio))
+            throw new RuntimeException("La hora fin debe ser mayor a la hora inicio");
+
+        if (hasOverlap(dto.getVeterinarioId(), dto.getDia(), inicio, fin, id)) {
+            throw new RuntimeException("Ya existe un horario que se solapa con este");
+        }
+
         Veterinario vet = new Veterinario();
         vet.setId(vetDto.getId());
         vet.setNombre(vetDto.getNombre());
 
         h.setVeterinario(vet);
         h.setDia(dto.getDia());
-        h.setHoraInicio(LocalTime.parse(dto.getHoraInicio()));
-        h.setHoraFin(LocalTime.parse(dto.getHoraFin()));
+        h.setHoraInicio(inicio);
+        h.setHoraFin(fin);
 
         Horario updated = repo.save(h);
         return mapToDTO(updated);
@@ -92,10 +128,10 @@ public class HorarioServiceImpl implements HorarioService {
 
         return repo.findByVeterinarioId(veterinarioId)
                 .stream()
-                .anyMatch(h -> 
+                .anyMatch(h ->
                         h.getDia().equalsIgnoreCase(dia)
-                        && !horaCita.isBefore(h.getHoraInicio())
-                        && !horaCita.isAfter(h.getHoraFin())
+                                && !horaCita.isBefore(h.getHoraInicio())
+                                && !horaCita.isAfter(h.getHoraFin())
                 );
     }
 

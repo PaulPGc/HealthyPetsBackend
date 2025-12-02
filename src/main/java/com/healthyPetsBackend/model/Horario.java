@@ -2,8 +2,7 @@ package com.healthyPetsBackend.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
-import java.time.LocalTime; 
+import java.time.LocalTime;
 
 @Entity
 @Data

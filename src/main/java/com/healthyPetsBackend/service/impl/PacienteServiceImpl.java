@@ -26,6 +26,10 @@ public class PacienteServiceImpl implements PacienteService {
     @Override
     public PacienteResponseDTO create(PacienteCreateDTO dto) {
 
+        if (repo.existsByDueñoIdAndNombreIgnoreCase(dto.getDuenoId(), dto.getNombre())) {
+            throw new RuntimeException("Ya existe un paciente con ese nombre para este dueño");
+        }
+
         UserResponseDTO duenoDTO = userService.getById(dto.getDuenoId());
         if (duenoDTO == null)
             throw new RuntimeException("Dueño no encontrado");
@@ -36,7 +40,7 @@ public class PacienteServiceImpl implements PacienteService {
         dueno.setId(duenoDTO.getId());
         dueno.setFullName(duenoDTO.getFullName());
 
-        p.setDueño(dueno); // la entidad puede seguir llamándose 'dueño'
+        p.setDueño(dueno);
         p.setNombre(dto.getNombre());
         p.setEspecie(dto.getEspecie());
         p.setRaza(dto.getRaza());
@@ -62,7 +66,14 @@ public class PacienteServiceImpl implements PacienteService {
 
     @Override
     public PacienteResponseDTO update(Long id, PacienteUpdateDTO dto) {
+
         Paciente p = findEntityById(id);
+
+        if (repo.existsByDueñoIdAndNombreIgnoreCase(dto.getDuenoId(), dto.getNombre())
+                && !p.getNombre().equalsIgnoreCase(dto.getNombre())) {
+
+            throw new RuntimeException("Ya existe un paciente con ese nombre para este dueño");
+        }
 
         UserResponseDTO duenoDTO = userService.getById(dto.getDuenoId());
         if (duenoDTO == null)
@@ -81,6 +92,7 @@ public class PacienteServiceImpl implements PacienteService {
         Paciente updated = repo.save(p);
         return mapToDTO(updated);
     }
+
 
     @Override
     public void delete(Long id) {
