@@ -17,6 +17,7 @@ public class Cita {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "paciente_id")
     private Long paciente;       // id del paciente (mascota)
 
     private LocalDate fecha;
